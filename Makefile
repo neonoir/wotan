@@ -3,12 +3,14 @@
 DEPS_DIR = $(CURDIR)/deps
 RABBIT_DL_URI = http://www.rabbitmq.com/releases/rabbitmq-erlang-client/v3.4.3
 RABBIT = $(DEPS_DIR)
+UUID_GIT_REPO = git@github.com:okeuday/uuid.git
 DEPS = $(RABBIT)/rabbit_common-3.4.3.ez \
-       $(RABBIT)/amqp_client-3.4.3.ez
+       $(RABBIT)/amqp_client-3.4.3.ez \
 
 all: deps compile
 
-deps: $(DEPS_DIR) $(DEPS)
+deps: $(DEPS_DIR) $(DEPS) 
+	rebar get-deps
 
 $(DEPS_DIR):
 	mkdir -p $(DEPS_DIR)

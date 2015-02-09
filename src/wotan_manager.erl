@@ -9,25 +9,25 @@
 
 init() ->
     Channel = wotan_rmq_utils:get_channel("localhost"),
-    TaskQueue = wotan_rmq_utils:worker_queue(Channel, <<"task_queue">>),
-    JobQueue = wotan_rmq_utils:worker_queue(Channel, <<"job_queue">>),
+    wotan_rmq_utils:declare_worker_queue(Channel, <<"task_queue">>),
+    JobQueue = wotan_rmq_utils:declare_worker_queue(Channel, <<"job_queue">>),
     wotan_rmq_utils:subscribe(Channel, JobQueue),
     loop(Channel).
 
 loop(Channel) ->
     receive
         {#'basic.deliver'{delivery_tag = Tag}, #amqp_msg{payload = Msg}} ->
-	    #job{id = JobId, tasks = Tasks} = binary_to_term(Job),
-	    Pid = spawn(?MODULE, assign_tasks, [Channel, Tag, self(), JobId, Tasks]),
+	    #job{id = JobId, tasks = Tasks} = binary_to_term(Msg),
+	    spawn(?MODULE, assign_tasks, [Channel, Tag, self(), JobId, Tasks]),
 	    loop(Channel);
-	{Tag, JobId, job_assigned} ->
+	{job_assigned, Tag} ->
 	    %% log it
 	    wotan_rmq_utils:ack(Channel, Tag),
 	    loop(Channel)
     end.
 
-assign_tasks(Channel, Tag, Manager, JobId, []) ->
-    Manager ! {JobId, job_assigned};
+assign_tasks(_, Tag, Manager, _, []) ->
+    Manager ! {job_assigned, Tag};
 assign_tasks(Channel, Tag, Manager, JobId, [Task|Tasks]) ->
     TaskId = make_ref(),
     Msg = #taskmsg{
@@ -36,7 +36,7 @@ assign_tasks(Channel, Tag, Manager, JobId, [Task|Tasks]) ->
 	     status = assigned},
     assign_task(Channel, term_to_binary(Msg)),
     ets:insert(JobId, Msg),
-    assign_task(Channel, Manager, JobId, Tasks).
+    assign_tasks(Channel, Tag, Manager, JobId, Tasks).
 
 assign_task(Channel, Msg) ->
     amqp_channel:cast(Channel,

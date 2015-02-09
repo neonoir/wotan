@@ -3,12 +3,12 @@
 
 -include_lib("amqp_client/include/amqp_client.hrl").
 
--spec get_channel(string()) -> {ok, pid()} | {error, Error}.
+-spec get_channel(string()) -> {ok, pid()} | {error, term()}.
 get_channel(Host) ->
     case amqp_connection:start(#amqp_params_network{host = Host}) of
 	{ok, Connection} ->
 	    case amqp_connection:open_channel(Connection) of
-		Channel ->
+		{ok, Channel} ->
 		    Channel;
 		{error, Error} ->
 		    {error, Error}
@@ -36,7 +36,7 @@ queue_bind(Channel, Exchange, Queue, RoutingKey) ->
     amqp_channel:call(Channel, 
 		      #'queue.bind'{exchange = Exchange,
 				    queue = Queue,
-				    routing_key = atom_to_binary(RoutingKey)}).
+				    routing_key = RoutingKey}).
 
 publish(Channel, Exchange, Payload) ->
     amqp_channel:cast(Channel,
@@ -54,7 +54,7 @@ subscribe(Channel, Queue) ->
 ack(Channel, Tag) ->
     amqp_channel:cast(Channel, #'basic.ack'{delivery_tag = Tag}).
 
-worker_queue(Channel, QueueName) ->
+declare_worker_queue(Channel, QueueName) ->
     #'queue.declare_ok'{queue = Queue} =
         amqp_channel:call(Channel, 
 			  #'queue.declare'{queue = QueueName,

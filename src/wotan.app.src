@@ -1,0 +1,20 @@
+{application, wotan,
+ [
+  {description, "Distributed FSM"},
+  {vsn, "0.0.1"},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib
+                 ]},
+  {mod, {wotan_app, []}},
+  {env, []},
+  {modules, [
+             wotan, 
+	     wotan_app, 
+	     wotan_sup,
+	     wotan_web, 
+	     wotan_manager,
+	     wotan_wroker
+            ]}
+ ]}.

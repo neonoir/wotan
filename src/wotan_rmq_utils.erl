@@ -19,7 +19,8 @@ get_channel(Host) ->
 
 exchange_declare(Channel, Exchange, Type) ->
     amqp_channel:call(Channel, 
-		      #'exchange.declare'{exchange = Exchange, type = Type}).
+		      #'exchange.declare'{exchange = Exchange, 
+					  type = Type}).
 
 queue_declare(Channel, Method) ->
     #'queue.declare_ok'{queue = Queue} = 
@@ -28,7 +29,14 @@ queue_declare(Channel, Method) ->
 
 queue_bind(Channel, Exchange, Queue) ->
     amqp_channel:call(Channel, 
-		      #'queue.bind'{exchange = Exchange, queue = Queue}).
+		      #'queue.bind'{exchange = Exchange, 
+				    queue = Queue}).
+
+queue_bind(Channel, Exchange, Queue, RoutingKey) ->
+    amqp_channel:call(Channel, 
+		      #'queue.bind'{exchange = Exchange,
+				    queue = Queue,
+				    routing_key = atom_to_binary(RoutingKey)}).
 
 publish(Channel, Exchange, Payload) ->
     amqp_channel:cast(Channel,
@@ -36,10 +44,9 @@ publish(Channel, Exchange, Payload) ->
 		      #amqp_msg{payload = term_to_binary(Payload)}).
 
 subscribe(Channel, Queue) ->
-    #'basic.consume_ok'{consumer_tag = _Tag} = 
-	amqp_channel:subscribe(Channel, 
-			       #'basic.consume'{queue = Queue}, 
-			       self()),
+    amqp_channel:subscribe(Channel, 
+			   #'basic.consume'{queue = Queue}, 
+			   self()),
     receive
         #'basic.consume_ok'{} -> ok
     end.
@@ -55,11 +62,3 @@ worker_queue(Channel, QueueName) ->
     amqp_channel:call(Channel, #'basic.qos'{prefetch_count = 1}),
     Queue.
 
-assign_task(Channel, Msg) ->    
-    amqp_channel:cast(Channel,
-                      #'basic.publish'{
-			 exchange = <<"">>,
-			 routing_key = <<"wotan_task_queue">>},
-                      #amqp_msg{
-			 props = #'P_basic'{delivery_mode = 2},
-			 payload = Msg}).

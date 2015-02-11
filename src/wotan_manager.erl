@@ -29,13 +29,12 @@ loop(Channel) ->
 assign_tasks(_, Tag, Manager, _, []) ->
     Manager ! {job_assigned, Tag};
 assign_tasks(Channel, Tag, Manager, JobId, [Task|Tasks]) ->
-    TaskId = make_ref(),
+    TaskId = uuid:get_v4(),
     Msg = #taskmsg{
 	     taskmsg_id = #taskmsg_id{job_id = JobId, task_id = TaskId}, 
 	     task = Task,
 	     status = assigned},
-    assign_task(Channel, term_to_binary(Msg)),
-    ets:insert(JobId, Msg),
+    assign_task(Channel, Msg),
     assign_tasks(Channel, Tag, Manager, JobId, Tasks).
 
 assign_task(Channel, Msg) ->
@@ -45,4 +44,4 @@ assign_task(Channel, Msg) ->
 			 routing_key = <<"task_queue">>},
                       #amqp_msg{
 			 props = #'P_basic'{delivery_mode = 2},
-			 payload = Msg}).
+			 payload = term_to_binary(Msg)}).

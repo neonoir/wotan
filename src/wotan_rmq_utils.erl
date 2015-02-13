@@ -44,6 +44,8 @@ publish(Channel, Exchange, Payload) ->
 		      #amqp_msg{payload = term_to_binary(Payload)}).
 
 subscribe(Channel, Queue) ->
+    amqp_channel:call(Channel, 
+		      #'basic.qos'{prefetch_count = 1}),
     amqp_channel:subscribe(Channel, 
 			   #'basic.consume'{queue = Queue}, 
 			   self()),
@@ -51,14 +53,12 @@ subscribe(Channel, Queue) ->
         #'basic.consume_ok'{} -> ok
     end.
 
-ack(Channel, Tag) ->
-    amqp_channel:cast(Channel, #'basic.ack'{delivery_tag = Tag}).
-
 declare_worker_queue(Channel, QueueName) ->
     #'queue.declare_ok'{queue = Queue} =
         amqp_channel:call(Channel, 
 			  #'queue.declare'{queue = QueueName,
 					   durable = true}),
-    amqp_channel:call(Channel, #'basic.qos'{prefetch_count = 1}),
     Queue.
 
+ack(Channel, Tag) ->
+    amqp_channel:cast(Channel, #'basic.ack'{delivery_tag = Tag}).

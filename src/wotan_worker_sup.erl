@@ -11,7 +11,8 @@
 -behaviour(supervisor).
 
 %% API
--export([start_link/0]).
+-export([start_link/0,
+	 start_child/0]).
 
 %% Supervisor callbacks
 -export([init/1]).
@@ -41,7 +42,7 @@ init([]) ->
     Shutdown = brutal_kill,
     Type = worker,
 
-    WorkerChild = {wotan_worker, {wotan_wroker, start_link, []},
+    WorkerChild = {wotan_worker, {wotan_worker, start_link, []},
 		   Restart, Shutdown, Type, [wotan_wroker]},
 
     {ok, {SupFlags, [WorkerChild]}}.

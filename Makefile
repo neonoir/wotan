@@ -19,6 +19,11 @@ $(RABBIT)%:
 	wget $(RABBIT_DL_URI)$* -O $@
 	unzip $@ -d $(DEPS_DIR)
 
+app: compile ebin/wotan.app
+
+ebin/wotan.app: src/wotan.app.src
+	cp src/wotan.app.src ebin/wotan.app
+
 compile:
 	erl -pa deps/*/ebin -make
 

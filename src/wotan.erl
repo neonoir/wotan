@@ -12,8 +12,13 @@ start() ->
     ensure_started(wotan),
     leptus:start_listener(http, [{'_', [{wotan_rest, undefined_state}]}]).
 
+add_manager() ->
+    Db = wotan_couch:db(),
+    wotan_manager_sup:start_child(Db).
+
 add_workers(N) ->
-    [wotan_worker_sup:start_child() || _ <- lists:seq(1, N)],
+    Db = wotan_couch:db(),
+    [wotan_worker_sup:start_child(Db) || _ <- lists:seq(1, N)],
     log("* ~p workers started.~n", [N]).
 
 assign_job(Job) ->
@@ -38,7 +43,13 @@ ensure_started(App) ->
     end.
 
 ensure_deps_started() ->
-    ensure_started(crypto),
+    couchbeam:start(),
+    %% ensure_started(crypto),
+    %% ensure_started(asn1),
+    %% ensure_started(public_key),
+    %% ensure_started(ssl),
+    %% ensure_started(hackney),
+    %% ensure_started(couchbeam),
     ensure_started(ranch),
     ensure_started(cowlib),
     ensure_started(cowboy),
@@ -51,6 +62,13 @@ log(P, S) ->
 
 test(N) ->
     start(),
+    add_manager(),
     add_workers(N),
-    Job = #job{job_id=uuid:get_v4(), tasks=[#task{mod=test_job, func=fun1, args=[]}]},
+    JobId = job_id(),
+    Job = #job{
+	     job_id=JobId, 
+	     tasks=[#task{mod=test_job, func=fun1, args=[]}]},
     assign_job(Job).
+
+job_id() ->
+    list_to_binary(uuid:uuid_to_string(uuid:get_v4(), nodash)).

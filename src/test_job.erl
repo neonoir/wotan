@@ -9,7 +9,10 @@
 fun1() ->
     [#task{mod = ?MODULE, 
 	  func = fun2,
-	  args = []}].
+	  args = []},
+     #task{mod = ?MODULE, 
+	   func = fun2,
+	   args = []}].
 
 fun2() ->
     [#task{mod = ?MODULE, 
@@ -18,9 +21,18 @@ fun2() ->
      #task{mod = ?MODULE, 
 	   func = fun3,
 	   args = [4]},
-    #task{mod = ?MODULE, 
+     #task{mod = ?MODULE, 
 	  func = fun3,
-	  args = [asd]}].
+	  args = [asd]},
+     #task{mod = ?MODULE, 
+	   func = fun3,
+	   args = [asd]},
+     #task{mod = ?MODULE, 
+	   func = fun3,
+	   args = [asd]},
+     #task{mod = ?MODULE, 
+	   func = fun3,
+	   args = [asd]}].
 
 fun3(_) ->
     [].

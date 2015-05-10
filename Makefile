@@ -9,7 +9,7 @@ DEPS = $(RABBIT)/rabbit_common-3.4.3.ez \
 
 all: deps compile
 
-deps: $(DEPS_DIR) $(DEPS) 
+deps: $(DEPS_DIR) $(DEPS)
 	rebar get-deps
 
 $(DEPS_DIR):
@@ -25,6 +25,7 @@ ebin/wotan.app: src/wotan.app.src
 	cp src/wotan.app.src ebin/wotan.app
 
 compile:
+	@mkdir -p $(CURDIR)/ebin
 	erl -pa deps/*/ebin -make
 
 clean:

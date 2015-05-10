@@ -43,6 +43,16 @@ publish(Channel, Exchange, Payload) ->
 		      #'basic.publish'{exchange = Exchange},
 		      #amqp_msg{payload = term_to_binary(Payload)}).
 
+publish(Channel, Exchange, RoutingKey, Payload) ->
+    amqp_channel:cast(Channel,
+		      #'basic.publish'{
+			 exchange = Exchange,
+			 routing_key = RoutingKey},
+		      #amqp_msg{
+			 props = #'P_basic'{delivery_mode = 2}, %% make message persistent
+			 payload = term_to_binary(Payload)}).
+
+
 subscribe(Channel, Queue) ->
     amqp_channel:call(Channel, 
 		      #'basic.qos'{prefetch_count = 1}),

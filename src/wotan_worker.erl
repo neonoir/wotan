@@ -6,7 +6,7 @@
 -include_lib("amqp_client/include/amqp_client.hrl").
 
 start_link(Db) ->
-    Pid = spawn(fun() -> init(Db) end),
+    Pid = spawn_link(fun() -> init(Db) end),
     {ok, Pid}.
 
 init(Db) ->
@@ -28,16 +28,10 @@ loop(Channel, Db) ->
 	    wotan:log("* ~p received ~p.~n", [self(), {M, F, A}]),
 	    NewTasks = apply(M, F, A),
 	    wotan_couch:save_task_status(Db, TaskMsg#taskmsg{status = <<"done">>}),
-	    case NewTasks of
-		[] -> 
-		    wotan_rmq_utils:ack(Channel, Tag),
-		    loop(Channel, Db);
-		_ ->
-		    wotan_manager:assign_tasks(Channel, Db, JobId, NewTasks),
-		    wotan_rmq_utils:ack(Channel, Tag),
-		    loop(Channel, Db)
-	    end	 
-    end.  
-    
+	    wotan_manager:assign_tasks(Channel, Db, JobId, NewTasks),
+	    wotan_rmq_utils:ack(Channel, Tag),
+	    loop(Channel, Db);
+
+    end.    
     
 

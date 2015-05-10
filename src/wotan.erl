@@ -2,6 +2,7 @@
 
 -export([test/1,
 	 start/0,
+	 add_manager/0,
 	 assign_job/1,
 	 log/2]).
 
@@ -14,7 +15,8 @@ start() ->
 
 add_manager() ->
     Db = wotan_couch:db(),
-    wotan_manager_sup:start_child(Db).
+    {ok, Pid} = wotan_manager_sup:start_child(Db),
+    register(wotan_manager, Pid).
 
 add_workers(N) ->
     Db = wotan_couch:db(),

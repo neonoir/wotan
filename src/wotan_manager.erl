@@ -25,7 +25,9 @@ loop(Channel, Db) ->
 	    wotan:log("* job received by manager: ~p~n", [Job]),
 	    assign_tasks(Channel, Db, JobId, Tasks),
 	    wotan_rmq_utils:ack(Channel, Tag),
-	    loop(Channel, Db)
+	    loop(Channel, Db);
+	xcv ->
+	    io:format("XCV")
     end.
 
 assign_tasks(_, _, _, []) ->
